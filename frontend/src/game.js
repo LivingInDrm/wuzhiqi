@@ -3,6 +3,7 @@ import { Renderer } from './renderer.js';
 import { AI } from './ai.js';
 import userManager from './user.js';
 import GameRecordFix from './game-fix.js';
+import onlineUIManager from './online-ui-manager.js';
 
 export class Gomoku {
     constructor() {
@@ -58,6 +59,10 @@ export class Gomoku {
         this.moveHistory = [];
         this.isAIThinking = false;
         this.winInfo = null;
+        
+        // 游戏模式相关
+        this.gameMode = 'ai'; // 'ai' 或 'online'
+        this.onlineGameData = null; // 在线游戏数据
 
         // 随机决定先手方：1=用户执黑先手，2=AI执黑先手
         this.randomizeFirstPlayer();
@@ -110,7 +115,14 @@ export class Gomoku {
     }
 
     handleCanvasClick(e) {
-        if (this.gameOver || this.isAIThinking || this.currentPlayer !== this.humanPlayer) return;
+        // AI模式：检查是否轮到玩家且不是AI思考时间
+        if (this.gameMode === 'ai') {
+            if (this.gameOver || this.isAIThinking || this.currentPlayer !== this.humanPlayer) return;
+        }
+        // 在线模式：检查是否轮到玩家
+        else if (this.gameMode === 'online') {
+            if (this.gameOver || !this.isPlayerTurn()) return;
+        }
 
         const { row, col } = this.getBoardCoordinates(e);
         
@@ -120,7 +132,14 @@ export class Gomoku {
     }
 
     handleCanvasMousemove(e) {
-        if (this.gameOver || this.isAIThinking || this.currentPlayer !== this.humanPlayer) return;
+        // AI模式：检查是否轮到玩家且不是AI思考时间
+        if (this.gameMode === 'ai') {
+            if (this.gameOver || this.isAIThinking || this.currentPlayer !== this.humanPlayer) return;
+        }
+        // 在线模式：检查是否轮到玩家
+        else if (this.gameMode === 'online') {
+            if (this.gameOver || !this.isPlayerTurn()) return;
+        }
         
         const { row, col } = this.getBoardCoordinates(e);
 
@@ -148,7 +167,7 @@ export class Gomoku {
         return this.isValidPosition(row, col) && this.board[row][col] === 0;
     }
     
-    makeMove(row, col) {
+    makeMove(row, col, fromOnline = false) {
         this.board[row][col] = this.currentPlayer;
         this.moveHistory.push({row, col, player: this.currentPlayer});
         
@@ -156,6 +175,18 @@ export class Gomoku {
         this.recordMove(row, col, this.currentPlayer);
         
         this.renderer.drawBoard(this.board);
+
+        // 在线模式下，如果是玩家移动且不是来自网络，需要发送到服务器
+        if (this.gameMode === 'online' && !fromOnline && this.isPlayerTurn()) {
+            const success = onlineUIManager.sendMove(row, col);
+            if (!success) {
+                // 发送失败，回滚移动
+                this.board[row][col] = 0;
+                this.moveHistory.pop();
+                this.renderer.drawBoard(this.board);
+                return;
+            }
+        }
 
         if (this.checkWin(row, col, this.currentPlayer)) {
             this.endGame(false);
@@ -170,9 +201,12 @@ export class Gomoku {
 
     switchPlayer() {
         this.currentPlayer = this.currentPlayer === 1 ? 2 : 1;
-        if (this.currentPlayer === this.aiPlayer) {
+        
+        // AI模式：如果轮到AI，触发AI移动
+        if (this.gameMode === 'ai' && this.currentPlayer === this.aiPlayer) {
             this.triggerAIMove();
         }
+        // 在线模式：不需要特殊处理，等待对手移动或轮到玩家
     }
 
     endGame(isDraw) {
@@ -513,6 +547,173 @@ export class Gomoku {
             console.log('✅ 用户系统初始化完成');
         } catch (error) {
             console.error('❌ 用户系统初始化失败:', error);
+        }
+    }
+
+    // ==================== 在线模式支持方法 ====================
+
+    /**
+     * 设置游戏模式
+     * @param {string} mode - 'ai' 或 'online'
+     */
+    setGameMode(mode) {
+        this.gameMode = mode;
+        console.log(`游戏模式设置为: ${mode}`);
+    }
+
+    /**
+     * 开始在线游戏
+     * @param {Object} gameData - 游戏数据 {gameId, opponent, yourPiece, isYourTurn}
+     */
+    startOnlineGame(gameData) {
+        this.onlineGameData = gameData;
+        
+        // 重置游戏状态
+        this.board = Array(config.BOARD_SIZE).fill(0).map(() => Array(config.BOARD_SIZE).fill(0));
+        this.gameOver = false;
+        this.moveHistory = [];
+        this.isAIThinking = false;
+        this.winInfo = null;
+
+        // 设置玩家角色（在线模式中，玩家始终是humanPlayer）
+        this.humanPlayer = gameData.yourPiece === 'black' ? 1 : 2;
+        this.aiPlayer = gameData.yourPiece === 'black' ? 2 : 1; // 对手相当于AI
+        
+        // 设置当前玩家（黑子先手）
+        this.currentPlayer = 1; // 黑子先手
+        
+        // 更新UI
+        this.updateOnlineGameUI();
+        this.renderer.drawBoard(this.board);
+        
+        // 启动游戏记录
+        this.startGameRecording();
+        
+        console.log('🎮 在线游戏开始:', {
+            yourPiece: gameData.yourPiece,
+            isYourTurn: gameData.isYourTurn,
+            opponent: gameData.opponent.username
+        });
+    }
+
+    /**
+     * 处理对手移动
+     * @param {Object} moveData - 移动数据 {row, col, piece, player}
+     */
+    handleOpponentMove(moveData) {
+        if (this.gameMode !== 'online') return;
+        
+        const { row, col } = moveData;
+        
+        // 确保是对手的回合
+        if (this.isPlayerTurn()) {
+            console.error('收到对手移动，但当前是玩家回合');
+            return;
+        }
+        
+        // 验证移动合法性
+        if (!this.isValidMove(row, col)) {
+            console.error('收到非法的对手移动:', moveData);
+            return;
+        }
+        
+        // 执行移动（标记为来自网络）
+        this.makeMove(row, col, true);
+        
+        console.log('👥 对手移动:', moveData);
+    }
+
+    /**
+     * 处理在线游戏结束
+     * @param {Object} endData - 结束数据 {result, winner}
+     */
+    handleOnlineGameEnd(endData) {
+        this.gameOver = true;
+        this.onlineGameData = null;
+        
+        // 清理AI定时器
+        this.clearAITimer();
+        
+        let gameResult;
+        if (endData.result === 'draw') {
+            this.gameStatusSpan.textContent = '平局！';
+            this.gameStatusSpan.style.color = '#f39c12';
+            gameResult = 'draw';
+        } else {
+            const isPlayerWin = (this.onlineGameData && this.onlineGameData.yourPiece === endData.winner);
+            this.gameStatusSpan.textContent = isPlayerWin ? '恭喜您获胜！' : '很遗憾，您败了！';
+            this.gameStatusSpan.style.color = isPlayerWin ? '#27ae60' : '#e74c3c';
+            gameResult = isPlayerWin ? 'win' : 'lose';
+            
+            if (isPlayerWin) {
+                this.canvas.classList.add('win-animation');
+                if (this.winInfo) {
+                    this.renderer.drawWinLine(this.winInfo);
+                }
+            }
+        }
+        
+        // 记录游戏结果（如果是正常游戏结束）
+        if (endData.result !== 'abandon') {
+            this.recordOnlineGameResult(gameResult);
+        }
+        
+        this.updateUI();
+        
+        console.log('🏁 在线游戏结束:', endData);
+    }
+
+    /**
+     * 检查是否轮到玩家
+     */
+    isPlayerTurn() {
+        if (this.gameMode === 'ai') {
+            return this.currentPlayer === this.humanPlayer;
+        } else if (this.gameMode === 'online') {
+            if (!this.onlineGameData) return false;
+            
+            // 在在线模式下，玩家的棋子类型决定了回合
+            const playerPiece = this.onlineGameData.yourPiece;
+            const currentPiece = this.currentPlayer === 1 ? 'black' : 'white';
+            return playerPiece === currentPiece;
+        }
+        return false;
+    }
+
+    /**
+     * 更新在线游戏UI
+     */
+    updateOnlineGameUI() {
+        if (!this.onlineGameData) return;
+        
+        const yourPiece = this.onlineGameData.yourPiece === 'black' ? '黑子' : '白子';
+        this.currentPlayerSpan.textContent = `您执${yourPiece}`;
+        
+        // 更新先手信息
+        this.firstPlayerInfoSpan.textContent = `黑子先手 vs ${this.onlineGameData.opponent.username}`;
+        
+        // 更新AI难度显示为对手信息
+        this.currentDifficultySpan.textContent = `对战中 - ${this.onlineGameData.opponent.username}`;
+    }
+
+    /**
+     * 记录在线游戏结果
+     */
+    async recordOnlineGameResult(result) {
+        if (userManager.isRegisteredUser()) {
+            try {
+                // 使用在线模式的特殊标记
+                await GameRecordFix.recordGame(GameRecordFix.createGameResult(
+                    result, 
+                    'online', // 难度设为online
+                    this.moveHistory.length, 
+                    this.getGameDuration(), 
+                    this.onlineGameData ? (this.onlineGameData.yourPiece === 'black' ? "black" : "white") : "black"
+                ));
+                console.log('📊 在线游戏结果已记录:', result);
+            } catch (error) {
+                console.error('❌ 记录在线游戏结果失败:', error);
+            }
         }
     }
 } 

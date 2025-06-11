@@ -10,7 +10,23 @@
     <div class="container">
         <h1>五子棋游戏</h1>
         
-        <div class="difficulty-selector">
+        <!-- 游戏模式选择器 -->
+        <div class="game-mode-selector">
+            <h3>选择游戏模式</h3>
+            <div class="mode-options">
+                <button class="mode-btn active" data-mode="ai">
+                    <span class="mode-name">🤖 人机对战</span>
+                    <span class="mode-desc">与AI对战</span>
+                </button>
+                <button class="mode-btn" data-mode="online">
+                    <span class="mode-name">🌐 在线对战</span>
+                    <span class="mode-desc">与真人玩家对战</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- AI难度选择器（仅在AI模式显示） -->
+        <div class="difficulty-selector" id="difficultySelector">
             <h3>选择AI难度</h3>
             <div class="difficulty-options">
                 <button class="difficulty-btn active" data-difficulty="simple">
@@ -25,6 +41,26 @@
                     <span class="difficulty-name">专业</span>
                     <span class="difficulty-desc">高级威胁识别</span>
                 </button>
+            </div>
+        </div>
+
+        <!-- 在线对战控制面板（仅在在线模式显示） -->
+        <div class="online-panel" id="onlinePanel" style="display: none;">
+            <div class="online-status">
+                <div class="connection-status">
+                    <span id="connectionStatus">未连接</span>
+                </div>
+                <div class="match-status">
+                    <span id="matchStatus">点击下方按钮开始匹配</span>
+                </div>
+            </div>
+            <div class="online-controls">
+                <button id="startMatchBtn" class="btn primary">开始匹配</button>
+                <button id="cancelMatchBtn" class="btn secondary" style="display: none;">取消匹配</button>
+                <button id="surrenderBtn" class="btn danger" style="display: none;">投降</button>
+            </div>
+            <div class="opponent-info" id="opponentInfo" style="display: none;">
+                <span>对手: <strong id="opponentName">-</strong></span>
             </div>
         </div>
 
@@ -69,6 +105,8 @@
         </div>
     </div>
     
+    <!-- Socket.IO客户端库 -->
+    <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
     <script type="module" src="main.js"></script>
 </body>
 </html> 
