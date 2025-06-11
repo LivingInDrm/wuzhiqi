@@ -60,8 +60,10 @@ export class Gomoku {
         this.isAIThinking = false;
         this.winInfo = null;
         
-        // 游戏模式相关
-        this.gameMode = 'ai'; // 'ai' 或 'online'
+        // 游戏模式相关（仅在首次初始化时设置默认值）
+        if (isFirstInit) {
+            this.gameMode = 'ai'; // 'ai' 或 'online'
+        }
         this.onlineGameData = null; // 在线游戏数据
 
         // 随机决定先手方：1=用户执黑先手，2=AI执黑先手

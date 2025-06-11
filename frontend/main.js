@@ -18,12 +18,11 @@ document.addEventListener('DOMContentLoaded', () => {
     onlineUIManager.setCallbacks({
         onModeChange: (mode) => {
             console.log(`模式切换到: ${mode}`);
-            // 模式切换时重置游戏
+            // 设置游戏模式
+            game.setGameMode(mode);
+            
+            // 只在AI模式下重置游戏，在线模式由startOnlineGame处理
             if (mode === 'ai') {
-                game.setGameMode('ai');
-                game.resetGame();
-            } else {
-                game.setGameMode('online');
                 game.resetGame();
             }
         },
