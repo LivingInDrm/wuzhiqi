@@ -568,39 +568,51 @@ export class Gomoku {
     startOnlineGame(gameData) {
         console.log('🎮 startOnlineGame 被调用，数据:', gameData);
         
-        this.onlineGameData = gameData;
-        
-        // 重置游戏状态
-        this.board = Array(config.BOARD_SIZE).fill(0).map(() => Array(config.BOARD_SIZE).fill(0));
-        this.gameOver = false;
-        this.moveHistory = [];
-        this.isAIThinking = false;
-        this.winInfo = null;
+        try {
+            this.onlineGameData = gameData;
+            
+            // 重置游戏状态
+            this.board = Array(config.BOARD_SIZE).fill(0).map(() => Array(config.BOARD_SIZE).fill(0));
+            this.gameOver = false;
+            this.moveHistory = [];
+            this.isAIThinking = false;
+            this.winInfo = null;
 
-        // 设置玩家角色（在线模式中，玩家始终是humanPlayer）
-        this.humanPlayer = gameData.yourPiece === 'black' ? 1 : 2;
-        this.aiPlayer = gameData.yourPiece === 'black' ? 2 : 1; // 对手相当于AI
-        
-        // 设置当前玩家（黑子先手）
-        this.currentPlayer = 1; // 黑子先手
-        
-        console.log('🎮 在线游戏角色设置:', {
-            gameMode: this.gameMode,
-            humanPlayer: this.humanPlayer,
-            aiPlayer: this.aiPlayer,
-            currentPlayer: this.currentPlayer,
-            yourPiece: gameData.yourPiece,
-            isYourTurn: gameData.isYourTurn
-        });
-        
-        // 更新UI
-        this.updateOnlineGameUI();
-        this.renderer.drawBoard(this.board);
-        
-        // 启动游戏记录
-        this.startGameRecording();
-        
-        console.log('🎮 在线游戏开始完成');
+            // 设置玩家角色（在线模式中，玩家始终是humanPlayer）
+            this.humanPlayer = gameData.yourPiece === 'black' ? 1 : 2;
+            this.aiPlayer = gameData.yourPiece === 'black' ? 2 : 1; // 对手相当于AI
+            
+            // 设置当前玩家（黑子先手）
+            this.currentPlayer = 1; // 黑子先手
+            
+            console.log('🎮 在线游戏角色设置:', {
+                gameMode: this.gameMode,
+                humanPlayer: this.humanPlayer,
+                aiPlayer: this.aiPlayer,
+                currentPlayer: this.currentPlayer,
+                yourPiece: gameData.yourPiece,
+                isYourTurn: gameData.isYourTurn
+            });
+            
+            // 更新UI
+            console.log('🎮 开始更新UI...');
+            this.updateOnlineGameUI();
+            console.log('🎮 UI更新完成');
+            
+            console.log('🎮 开始重绘棋盘...');
+            this.renderer.drawBoard(this.board);
+            console.log('🎮 棋盘重绘完成');
+            
+            // 启动游戏记录
+            console.log('🎮 开始游戏记录...');
+            this.startGameRecording();
+            console.log('🎮 游戏记录启动完成');
+            
+            console.log('🎮 在线游戏开始完成');
+        } catch (error) {
+            console.error('❌ startOnlineGame 执行出错:', error);
+            throw error;
+        }
     }
 
     /**
