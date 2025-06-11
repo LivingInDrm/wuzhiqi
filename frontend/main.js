@@ -6,6 +6,11 @@ import onlineClient from './src/online-client.js';
 document.addEventListener('DOMContentLoaded', () => {
     const game = new Gomoku();
     
+    // 暴露到全局作用域用于调试
+    window.game = game;
+    window.onlineUIManager = onlineUIManager;
+    window.onlineClient = onlineClient;
+    
     // 初始化在线UI管理器
     onlineUIManager.init();
     

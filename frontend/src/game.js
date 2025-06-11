@@ -566,6 +566,8 @@ export class Gomoku {
      * @param {Object} gameData - 游戏数据 {gameId, opponent, yourPiece, isYourTurn}
      */
     startOnlineGame(gameData) {
+        console.log('🎮 startOnlineGame 被调用，数据:', gameData);
+        
         this.onlineGameData = gameData;
         
         // 重置游戏状态
@@ -582,6 +584,15 @@ export class Gomoku {
         // 设置当前玩家（黑子先手）
         this.currentPlayer = 1; // 黑子先手
         
+        console.log('🎮 在线游戏角色设置:', {
+            gameMode: this.gameMode,
+            humanPlayer: this.humanPlayer,
+            aiPlayer: this.aiPlayer,
+            currentPlayer: this.currentPlayer,
+            yourPiece: gameData.yourPiece,
+            isYourTurn: gameData.isYourTurn
+        });
+        
         // 更新UI
         this.updateOnlineGameUI();
         this.renderer.drawBoard(this.board);
@@ -589,11 +600,7 @@ export class Gomoku {
         // 启动游戏记录
         this.startGameRecording();
         
-        console.log('🎮 在线游戏开始:', {
-            yourPiece: gameData.yourPiece,
-            isYourTurn: gameData.isYourTurn,
-            opponent: gameData.opponent.username
-        });
+        console.log('🎮 在线游戏开始完成');
     }
 
     /**
