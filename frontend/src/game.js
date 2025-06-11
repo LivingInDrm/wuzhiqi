@@ -2,6 +2,7 @@ import * as config from './config.js';
 import { Renderer } from './renderer.js';
 import { AI } from './ai.js';
 import userManager from './user.js';
+import GameRecordFix from './game-fix.js';
 
 export class Gomoku {
     constructor() {
@@ -466,7 +467,7 @@ export class Gomoku {
     recordMove(row, col, player) {
         if (userManager.isRegisteredUser()) {
             // 通过userManager访问gameDataManager
-            const gameDataManager = userManager.gameDataManager || 
+            const gameDataManager = window.gameDataManager || 
                 (window.gameDataManager || null);
             
             if (gameDataManager && gameDataManager.recordMove) {
@@ -481,12 +482,20 @@ export class Gomoku {
     async recordGameResult(result) {
         if (userManager.isRegisteredUser()) {
             try {
-                await userManager.endGame(result);
+                await GameRecordFix.recordGame(GameRecordFix.createGameResult(result, this.difficulty, this.moveHistory.length, this.getGameDuration(), this.humanPlayer === 1 ? "black" : "white"));
                 console.log('📊 游戏结果已记录:', result);
             } catch (error) {
                 console.error('❌ 记录游戏结果失败:', error);
             }
         }
+    }
+
+    /**
+     * 获取游戏时长（秒）
+     */
+    getGameDuration() {
+        // 简单返回基于步数的估算时长
+        return Math.max(30, this.moveHistory.length * 3);
     }
     
     /**
