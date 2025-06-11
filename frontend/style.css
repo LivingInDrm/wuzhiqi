@@ -40,6 +40,19 @@ h1 {
     box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
 }
 
+/* 用户状态区域样式 */
+.user-status-area {
+    margin-bottom: 25px;
+    padding: 15px;
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    border-radius: 15px;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    min-height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
 .difficulty-selector h3 {
     color: white;
     margin-bottom: 15px;

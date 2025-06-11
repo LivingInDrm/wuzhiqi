@@ -1,6 +1,7 @@
 import * as config from './config.js';
 import { Renderer } from './renderer.js';
 import { AI } from './ai.js';
+import userManager from './user.js';
 
 export class Gomoku {
     constructor() {
@@ -38,6 +39,9 @@ export class Gomoku {
             this.ai = new AI(this);
             console.log('AI初始化成功');
             
+            // 初始化用户系统
+            this.initUserSystem();
+            
             console.log('五子棋游戏初始化完成');
         } catch (error) {
             console.error('游戏初始化失败:', error);
@@ -56,6 +60,9 @@ export class Gomoku {
 
         // 随机决定先手方：1=用户执黑先手，2=AI执黑先手
         this.randomizeFirstPlayer();
+        
+        // 启动新游戏记录
+        this.startGameRecording();
 
         // 只在第一次初始化时设置默认难度
         if (isFirstInit) {
@@ -144,6 +151,9 @@ export class Gomoku {
         this.board[row][col] = this.currentPlayer;
         this.moveHistory.push({row, col, player: this.currentPlayer});
         
+        // 记录移动到游戏数据
+        this.recordMove(row, col, this.currentPlayer);
+        
         this.renderer.drawBoard(this.board);
 
         if (this.checkWin(row, col, this.currentPlayer)) {
@@ -170,16 +180,23 @@ export class Gomoku {
         // 清理AI定时器
         this.clearAITimer();
         
+        let gameResult;
         if (isDraw) {
             this.gameStatusSpan.textContent = '平局！';
             this.gameStatusSpan.style.color = '#f39c12';
+            gameResult = 'draw';
         } else {
             const isHumanWin = this.currentPlayer === this.humanPlayer;
             this.gameStatusSpan.textContent = isHumanWin ? '恭喜您获胜！' : 'AI获胜！';
             this.gameStatusSpan.style.color = '#e74c3c';
             this.canvas.classList.add('win-animation');
             this.renderer.drawWinLine(this.winInfo);
+            gameResult = isHumanWin ? 'win' : 'lose';
         }
+        
+        // 记录游戏结果
+        this.recordGameResult(gameResult);
+        
         this.updateUI();
     }
 
@@ -424,5 +441,69 @@ export class Gomoku {
         
         // 更新缓存的引用
         this.firstPlayerInfoSpan = firstPlayerInfoElement;
+    }
+    
+    // =============== 游戏数据集成功能 ===============
+    
+    /**
+     * 启动新游戏记录
+     */
+    startGameRecording() {
+        if (userManager.isRegisteredUser()) {
+            const gameConfig = {
+                difficulty: this.difficulty,
+                userColor: this.humanPlayer === 1 ? 'black' : 'white'
+            };
+            
+            userManager.startNewGame(gameConfig);
+            console.log('🎮 游戏记录已启动:', gameConfig);
+        }
+    }
+    
+    /**
+     * 记录游戏移动
+     */
+    recordMove(row, col, player) {
+        if (userManager.isRegisteredUser()) {
+            // 通过userManager访问gameDataManager
+            const gameDataManager = userManager.gameDataManager || 
+                (window.gameDataManager || null);
+            
+            if (gameDataManager && gameDataManager.recordMove) {
+                gameDataManager.recordMove({ row, col }, player);
+            }
+        }
+    }
+    
+    /**
+     * 记录游戏结果
+     */
+    async recordGameResult(result) {
+        if (userManager.isRegisteredUser()) {
+            try {
+                await userManager.endGame(result);
+                console.log('📊 游戏结果已记录:', result);
+            } catch (error) {
+                console.error('❌ 记录游戏结果失败:', error);
+            }
+        }
+    }
+    
+    /**
+     * 初始化用户管理系统
+     */
+    async initUserSystem() {
+        try {
+            // 初始化用户管理系统
+            await userManager.init({
+                showUserStatus: true,
+                autoLogin: true,
+                userStatusContainer: 'userStatus'
+            });
+            
+            console.log('✅ 用户系统初始化完成');
+        } catch (error) {
+            console.error('❌ 用户系统初始化失败:', error);
+        }
     }
 } 
