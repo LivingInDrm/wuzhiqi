@@ -16,7 +16,8 @@ class OnlineUIManager {
         this.callbacks = {
             onModeChange: null,
             onGameStart: null,
-            onGameEnd: null
+            onGameEnd: null,
+            onOpponentMove: null
         };
     }
 
@@ -123,6 +124,11 @@ class OnlineUIManager {
                 } else {
                     // 更新回合显示
                     this.elements.gameStatus.textContent = '轮到您';
+                    
+                    // 通知外部回调处理对手移动
+                    if (this.callbacks.onOpponentMove) {
+                        this.callbacks.onOpponentMove(data);
+                    }
                 }
             },
             onGameEnd: (data) => {

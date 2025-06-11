@@ -629,6 +629,9 @@ export class Gomoku {
      */
     handleOnlineGameEnd(endData) {
         this.gameOver = true;
+        
+        // 保存游戏数据用于判断胜负
+        const savedGameData = this.onlineGameData;
         this.onlineGameData = null;
         
         // 清理AI定时器
@@ -640,7 +643,7 @@ export class Gomoku {
             this.gameStatusSpan.style.color = '#f39c12';
             gameResult = 'draw';
         } else {
-            const isPlayerWin = (this.onlineGameData && this.onlineGameData.yourPiece === endData.winner);
+            const isPlayerWin = (savedGameData && savedGameData.yourPiece === endData.winner);
             this.gameStatusSpan.textContent = isPlayerWin ? '恭喜您获胜！' : '很遗憾，您败了！';
             this.gameStatusSpan.style.color = isPlayerWin ? '#27ae60' : '#e74c3c';
             gameResult = isPlayerWin ? 'win' : 'lose';
@@ -655,7 +658,7 @@ export class Gomoku {
         
         // 记录游戏结果（如果是正常游戏结束）
         if (endData.result !== 'abandon') {
-            this.recordOnlineGameResult(gameResult);
+            this.recordOnlineGameResult(gameResult, savedGameData);
         }
         
         this.updateUI();
@@ -699,7 +702,7 @@ export class Gomoku {
     /**
      * 记录在线游戏结果
      */
-    async recordOnlineGameResult(result) {
+    async recordOnlineGameResult(result, savedGameData = null) {
         if (userManager.isRegisteredUser()) {
             try {
                 // 使用在线模式的特殊标记
@@ -708,7 +711,7 @@ export class Gomoku {
                     'online', // 难度设为online
                     this.moveHistory.length, 
                     this.getGameDuration(), 
-                    this.onlineGameData ? (this.onlineGameData.yourPiece === 'black' ? "black" : "white") : "black"
+                    savedGameData ? (savedGameData.yourPiece === 'black' ? "black" : "white") : "black"
                 ));
                 console.log('📊 在线游戏结果已记录:', result);
             } catch (error) {

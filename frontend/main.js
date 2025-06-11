@@ -30,13 +30,9 @@ document.addEventListener('DOMContentLoaded', () => {
         onGameEnd: (data) => {
             console.log('在线游戏结束:', data);
             game.handleOnlineGameEnd(data);
-        }
-    });
-    
-    // 设置在线客户端的对手移动回调
-    onlineClient.setCallbacks({
+        },
         onOpponentMove: (data) => {
-            // 如果游戏结束，直接由onlineUIManager处理
+            // 如果游戏结束，让onlineUIManager处理
             if (data.gameOver) return;
             
             // 否则通知游戏处理对手移动
