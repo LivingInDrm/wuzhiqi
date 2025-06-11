@@ -7,6 +7,7 @@ import authManager from './auth-manager.js';
 import userStatus from './user-status.js';
 import loginComponent from './login-component.js';
 import gameDataManager from './game-data-manager.js';
+import apiClient from './api-client.js';
 
 /**
  * 用户管理器 - 统一管理用户相关功能
@@ -108,7 +109,7 @@ export class UserManager {
         this.autoLoginAttempted = true;
 
         try {
-            const token = authManager.getToken();
+            const token = apiClient.getToken();
             if (token) {
                 console.log('🔑 检测到存储的token，尝试自动登录...');
                 // authManager 会自动验证token并更新状态
@@ -443,7 +444,7 @@ export class UserManager {
             userLevel: authManager.getUserLevel(),
             levelName: authManager.getUserLevelName(),
             isOnlineMode: true, // 新版本主要使用在线模式
-            hasToken: !!authManager.getToken()
+            hasToken: !!apiClient.getToken()
         };
     }
 
