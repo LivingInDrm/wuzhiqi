@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API通信测试 - 五子棋</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        h1, h2 {
+            color: #333;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 10px;
+        }
+        
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        
+        input, select, textarea {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        
+        button:hover {
+            background-color: #0056b3;
+        }
+        
+        button:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
+        
+        .result {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .result.success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        
+        .result.error {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        
+        .status {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 3px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .status.online {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .status.offline {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        
+        .user-info {
+            background-color: #e7f3ff;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .stat-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #007bff;
+        }
+        
+        .stat-label {
+            color: #666;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌐 API通信测试中心</h1>
+        
+        <div class="user-info">
+            <h3>📊 连接状态</h3>
+            <p>服务器状态: <span id="serverStatus" class="status offline">检测中...</span></p>
+            <p>用户状态: <span id="userStatus">未登录</span></p>
+            <p>当前用户: <span id="currentUser">无</span></p>
+        </div>
+    </div>
+
+    <!-- 健康检查 -->
+    <div class="container">
+        <div class="test-section">
+            <h2>🔍 服务器健康检查</h2>
+            <button onclick="testHealthCheck()">检查服务器状态</button>
+            <div id="healthResult" class="result"></div>
+        </div>
+    </div>
+
+    <!-- 用户认证测试 -->
+    <div class="container">
+        <div class="test-section">
+            <h2>🔐 用户认证测试</h2>
+            
+            <h3>📝 用户注册</h3>
+            <div class="form-group">
+                <label>用户名:</label>
+                <input type="text" id="regUsername" placeholder="至少3个字符" value="testuser123">
+            </div>
+            <div class="form-group">
+                <label>邮箱:</label>
+                <input type="email" id="regEmail" placeholder="user@example.com" value="test@example.com">
+            </div>
+            <div class="form-group">
+                <label>密码:</label>
+                <input type="password" id="regPassword" placeholder="至少6个字符" value="password123">
+            </div>
+            <button onclick="testRegister()">注册测试用户</button>
+            <div id="registerResult" class="result"></div>
+
+            <h3>🔑 用户登录</h3>
+            <div class="form-group">
+                <label>用户名:</label>
+                <input type="text" id="loginUsername" placeholder="用户名" value="testuser123">
+            </div>
+            <div class="form-group">
+                <label>密码:</label>
+                <input type="password" id="loginPassword" placeholder="密码" value="password123">
+            </div>
+            <button onclick="testLogin()">登录</button>
+            <button onclick="testLogout()">登出</button>
+            <div id="authResult" class="result"></div>
+
+            <h3>👤 用户信息</h3>
+            <button onclick="testGetProfile()">获取用户信息</button>
+            <div id="profileResult" class="result"></div>
+        </div>
+    </div>
+
+    <!-- 游戏记录测试 -->
+    <div class="container">
+        <div class="test-section">
+            <h2>🎮 游戏记录测试</h2>
+            
+            <h3>📝 记录游戏结果</h3>
+            <div class="form-group">
+                <label>游戏结果:</label>
+                <select id="gameResult">
+                    <option value="win">胜利</option>
+                    <option value="lose">失败</option>
+                    <option value="draw">平局</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>难度等级:</label>
+                <select id="gameDifficulty">
+                    <option value="simple">简单</option>
+                    <option value="advanced">进阶</option>
+                    <option value="professional">专业</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>步数:</label>
+                <input type="number" id="gameMoves" value="85" min="1" max="225">
+            </div>
+            <div class="form-group">
+                <label>用时(秒):</label>
+                <input type="number" id="gameDuration" value="120" min="1">
+            </div>
+            <button onclick="testRecordGame()">记录游戏结果</button>
+            <div id="recordResult" class="result"></div>
+
+            <h3>📚 游戏历史</h3>
+            <button onclick="testGetHistory()">获取游戏历史</button>
+            <div id="historyResult" class="result"></div>
+
+            <h3>📊 用户统计</h3>
+            <button onclick="testGetStats()">获取用户统计</button>
+            <div id="statsResult" class="result"></div>
+
+            <h3>🌍 全局统计</h3>
+            <button onclick="testGetGlobalStats()">获取全局统计</button>
+            <div id="globalStatsResult" class="result"></div>
+        </div>
+    </div>
+
+    <!-- 错误日志 -->
+    <div class="container">
+        <div class="test-section">
+            <h2>📋 错误日志</h2>
+            <button onclick="showErrorLogs()">查看错误日志</button>
+            <button onclick="clearErrorLogs()">清除日志</button>
+            <div id="errorLogsResult" class="result"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        import apiClient from './src/api-client.js';
+        import { ApiErrorHandler } from './src/api-utils.js';
+        import authManager from './src/auth-manager.js';
+        import gameDataManager from './src/game-data-manager.js';
+
+        // 全局变量
+        window.apiClient = apiClient;
+        window.authManager = authManager;
+        window.gameDataManager = gameDataManager;
+
+        // 更新UI状态
+        function updateStatus() {
+            document.getElementById('userStatus').textContent = authManager.isLoggedIn() ? '已登录' : '未登录';
+            document.getElementById('currentUser').textContent = authManager.getUserDisplayName();
+        }
+
+        // 监听认证状态变化
+        authManager.addEventListener('auth:state-changed', updateStatus);
+        authManager.addEventListener('auth:initialized', updateStatus);
+
+        // 页面加载完成后检查服务器状态
+        document.addEventListener('DOMContentLoaded', async () => {
+            await testHealthCheck();
+            updateStatus();
+        });
+
+        // 健康检查
+        window.testHealthCheck = async function() {
+            const resultDiv = document.getElementById('healthResult');
+            const statusSpan = document.getElementById('serverStatus');
+            
+            try {
+                resultDiv.textContent = '正在检查服务器状态...';
+                resultDiv.className = 'result';
+                
+                const response = await apiClient.healthCheck();
+                
+                resultDiv.textContent = JSON.stringify(response, null, 2);
+                resultDiv.className = 'result success';
+                statusSpan.textContent = '在线';
+                statusSpan.className = 'status online';
+                
+            } catch (error) {
+                resultDiv.textContent = `错误: ${error.message}`;
+                resultDiv.className = 'result error';
+                statusSpan.textContent = '离线';
+                statusSpan.className = 'status offline';
+            }
+        };
+
+        // 用户注册
+        window.testRegister = async function() {
+            const resultDiv = document.getElementById('registerResult');
+            
+            try {
+                const userData = {
+                    username: document.getElementById('regUsername').value,
+                    email: document.getElementById('regEmail').value,
+                    password: document.getElementById('regPassword').value
+                };
+                
+                resultDiv.textContent = '正在注册...';
+                resultDiv.className = 'result';
+                
+                const response = await authManager.register(userData);
+                
+                resultDiv.textContent = JSON.stringify(response, null, 2);
+                resultDiv.className = 'result success';
+                updateStatus();
+                
+            } catch (error) {
+                resultDiv.textContent = `注册失败: ${error.message}`;
+                resultDiv.className = 'result error';
+            }
+        };
+
+        // 用户登录
+        window.testLogin = async function() {
+            const resultDiv = document.getElementById('authResult');
+            
+            try {
+                const credentials = {
+                    username: document.getElementById('loginUsername').value,
+                    password: document.getElementById('loginPassword').value
+                };
+                
+                resultDiv.textContent = '正在登录...';
+                resultDiv.className = 'result';
+                
+                const response = await authManager.login(credentials);
+                
+                resultDiv.textContent = JSON.stringify(response, null, 2);
+                resultDiv.className = 'result success';
+                updateStatus();
+                
+            } catch (error) {
+                resultDiv.textContent = `登录失败: ${error.message}`;
+                resultDiv.className = 'result error';
+            }
+        };
+
+        // 用户登出
+        window.testLogout = async function() {
+            const resultDiv = document.getElementById('authResult');
+            
+            try {
+                await authManager.logout();
+                
+                resultDiv.textContent = '登出成功';
+                resultDiv.className = 'result success';
+                updateStatus();
+                
+            } catch (error) {
+                resultDiv.textContent = `登出失败: ${error.message}`;
+                resultDiv.className = 'result error';
+            }
+        };
+
+        // 获取用户信息
+        window.testGetProfile = async function() {
+            const resultDiv = document.getElementById('profileResult');
+            
+            try {
+                resultDiv.textContent = '正在获取用户信息...';
+                resultDiv.className = 'result';
+                
+                const response = await apiClient.getProfile();
+                
+                resultDiv.textContent = JSON.stringify(response, null, 2);
+                resultDiv.className = 'result success';
+                
+            } catch (error) {
+                resultDiv.textContent = `获取用户信息失败: ${error.message}`;
+                resultDiv.className = 'result error';
+            }
+        };
+
+        // 记录游戏结果
+        window.testRecordGame = async function() {
+            const resultDiv = document.getElementById('recordResult');
+            
+            try {
+                const gameData = {
+                    result: document.getElementById('gameResult').value,
+                    difficulty: document.getElementById('gameDifficulty').value,
+                    moves: parseInt(document.getElementById('gameMoves').value),
+                    duration: parseInt(document.getElementById('gameDuration').value),
+                    userColor: 'black'
+                };
+                
+                resultDiv.textContent = '正在记录游戏结果...';
+                resultDiv.className = 'result';
+                
+                const response = await gameDataManager.recordGame(gameData);
+                
+                resultDiv.textContent = JSON.stringify(response, null, 2);
+                resultDiv.className = 'result success';
+                
+            } catch (error) {
+                resultDiv.textContent = `记录游戏失败: ${error.message}`;
+                resultDiv.className = 'result error';
+            }
+        };
+
+        // 获取游戏历史
+        window.testGetHistory = async function() {
+            const resultDiv = document.getElementById('historyResult');
+            
+            try {
+                resultDiv.textContent = '正在获取游戏历史...';
+                resultDiv.className = 'result';
+                
+                const response = await gameDataManager.loadGameHistory();
+                
+                resultDiv.textContent = JSON.stringify(response, null, 2);
+                resultDiv.className = 'result success';
+                
+            } catch (error) {
+                resultDiv.textContent = `获取游戏历史失败: ${error.message}`;
+                resultDiv.className = 'result error';
+            }
+        };
+
+        // 获取用户统计
+        window.testGetStats = async function() {
+            const resultDiv = document.getElementById('statsResult');
+            
+            try {
+                resultDiv.textContent = '正在获取用户统计...';
+                resultDiv.className = 'result';
+                
+                const stats = await gameDataManager.loadUserStats();
+                
+                resultDiv.textContent = JSON.stringify(stats, null, 2);
+                resultDiv.className = 'result success';
+                
+            } catch (error) {
+                resultDiv.textContent = `获取用户统计失败: ${error.message}`;
+                resultDiv.className = 'result error';
+            }
+        };
+
+        // 获取全局统计
+        window.testGetGlobalStats = async function() {
+            const resultDiv = document.getElementById('globalStatsResult');
+            
+            try {
+                resultDiv.textContent = '正在获取全局统计...';
+                resultDiv.className = 'result';
+                
+                const stats = await gameDataManager.loadGlobalStats();
+                
+                resultDiv.textContent = JSON.stringify(stats, null, 2);
+                resultDiv.className = 'result success';
+                
+            } catch (error) {
+                resultDiv.textContent = `获取全局统计失败: ${error.message}`;
+                resultDiv.className = 'result error';
+            }
+        };
+
+        // 查看错误日志
+        window.showErrorLogs = function() {
+            const resultDiv = document.getElementById('errorLogsResult');
+            const logs = ApiErrorHandler.getErrorLogs();
+            
+            if (logs.length === 0) {
+                resultDiv.textContent = '暂无错误日志';
+                resultDiv.className = 'result';
+            } else {
+                resultDiv.textContent = JSON.stringify(logs, null, 2);
+                resultDiv.className = 'result error';
+            }
+        };
+
+        // 清除错误日志
+        window.clearErrorLogs = function() {
+            ApiErrorHandler.clearErrorLogs();
+            document.getElementById('errorLogsResult').textContent = '错误日志已清除';
+            document.getElementById('errorLogsResult').className = 'result success';
+        };
+
+    </script>
+</body>
+</html>
