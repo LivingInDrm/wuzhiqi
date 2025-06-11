@@ -103,19 +103,25 @@ class MatchmakingService {
         this.playerGameMap.set(player2.socketId, gameId);
 
         // 通知双方玩家游戏开始
-        player1.socket.emit('gameStart', {
+        const player1Data = {
             gameId,
             opponent: { username: player2.username },
             yourPiece: 'black',
             isYourTurn: true
-        });
-
-        player2.socket.emit('gameStart', {
+        };
+        
+        const player2Data = {
             gameId,
             opponent: { username: player1.username },
             yourPiece: 'white',
             isYourTurn: false
-        });
+        };
+        
+        console.log(`🎮 [DEBUG] 向玩家1 ${player1.username} (${player1.socketId}) 发送gameStart:`, player1Data);
+        player1.socket.emit('gameStart', player1Data);
+
+        console.log(`🎮 [DEBUG] 向玩家2 ${player2.username} (${player2.socketId}) 发送gameStart:`, player2Data);
+        player2.socket.emit('gameStart', player2Data);
 
         return gameId;
     }

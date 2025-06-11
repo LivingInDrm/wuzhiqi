@@ -104,15 +104,20 @@ class OnlineUIManager {
             onGameStart: (data) => {
                 this.isMatchmaking = false;
                 this.isInGame = true;
-                this.updateMatchStatus('游戏开始！');
-                this.showOpponentInfo(data.opponent.username);
-                this.elements.cancelMatchBtn.style.display = 'none';
-                this.elements.surrenderBtn.style.display = 'inline-block';
                 
-                // 更新游戏状态显示
-                const yourPiece = data.yourPiece === 'black' ? '黑子' : '白子';
-                this.elements.currentPlayer.textContent = `您执${yourPiece}`;
-                this.elements.gameStatus.textContent = data.isYourTurn ? '轮到您' : '等待对手';
+                // 使用setTimeout确保此更新在所有同步事件后执行
+                setTimeout(() => {
+                    this.updateMatchStatus('游戏开始！');
+                    this.showOpponentInfo(data.opponent.username);
+                    this.elements.startMatchBtn.style.display = 'none';
+                    this.elements.cancelMatchBtn.style.display = 'none';
+                    this.elements.surrenderBtn.style.display = 'inline-block';
+                    
+                    // 更新游戏状态显示
+                    const yourPiece = data.yourPiece === 'black' ? '黑子' : '白子';
+                    this.elements.currentPlayer.textContent = `您执${yourPiece}`;
+                    this.elements.gameStatus.textContent = data.isYourTurn ? '轮到您' : '等待对手';
+                }, 0);
 
                 if (this.callbacks.onGameStart) {
                     this.callbacks.onGameStart(data);
