@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>在线对战调试测试</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .player { border: 1px solid #ccc; padding: 20px; margin: 10px; }
+        .status { margin: 10px 0; }
+        button { padding: 10px; margin: 5px; }
+    </style>
+</head>
+<body>
+    <h1>在线对战调试测试</h1>
+    
+    <div class="player" id="player1">
+        <h3>玩家1 (lxc)</h3>
+        <div class="status" id="status1">等待连接...</div>
+        <button onclick="connectPlayer1()">连接</button>
+        <button onclick="joinQueue1()">加入队列</button>
+    </div>
+    
+    <div class="player" id="player2">
+        <h3>玩家2 (lxc1)</h3>
+        <div class="status" id="status2">等待连接...</div>
+        <button onclick="connectPlayer2()">连接</button>
+        <button onclick="joinQueue2()">加入队列</button>
+    </div>
+
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script>
+        let socket1 = null;
+        let socket2 = null;
+        
+        // 玩家1 token (lxc)
+        const token1 = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjMsInVzZXJuYW1lIjoibHhjIiwiaWF0IjoxNzQ5NjU2Njk3LCJleHAiOjE3NDk3NDMwOTd9.Tp_5QMBTKpTLb5EGuvgqZuKM0U8fE6L-pMJKiMNuOrg';
+        
+        // 玩家2 token (lxc1)  
+        const token2 = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjQsInVzZXJuYW1lIjoibHhjMSIsImlhdCI6MTc0OTY1NjcwMiwiZXhwIjoxNzQ5NzQzMTAyfQ.CZlKLDQyK5e0G1rg0v-b_Cy66pE4TlHCGrxKwg-EZG4';
+        
+        function updateStatus(playerId, message) {
+            document.getElementById(`status${playerId}`).innerHTML = message;
+            console.log(`Player${playerId}: ${message}`);
+        }
+        
+        function connectPlayer1() {
+            if (socket1) {
+                socket1.disconnect();
+            }
+            
+            updateStatus(1, '连接中...');
+            socket1 = io('http://localhost:3000', {
+                auth: { token: token1 }
+            });
+            
+            socket1.on('connect', () => {
+                updateStatus(1, '已连接 (lxc)');
+            });
+            
+            socket1.on('connect_error', (error) => {
+                updateStatus(1, `连接失败: ${error.message}`);
+            });
+            
+            socket1.on('queueJoined', (data) => {
+                updateStatus(1, `加入队列: 位置${data.queuePosition || '未知'}`);
+            });
+            
+            socket1.on('gameStart', (data) => {
+                console.log('🎮 [Player1] gameStart事件:', data);
+                updateStatus(1, `游戏开始! 对手: ${data.opponent.username}, 您执: ${data.yourPiece}, 轮到您: ${data.isYourTurn}`);
+            });
+        }
+        
+        function connectPlayer2() {
+            if (socket2) {
+                socket2.disconnect();
+            }
+            
+            updateStatus(2, '连接中...');
+            socket2 = io('http://localhost:3000', {
+                auth: { token: token2 }
+            });
+            
+            socket2.on('connect', () => {
+                updateStatus(2, '已连接 (lxc1)');
+            });
+            
+            socket2.on('connect_error', (error) => {
+                updateStatus(2, `连接失败: ${error.message}`);
+            });
+            
+            socket2.on('queueJoined', (data) => {
+                updateStatus(2, `加入队列: 位置${data.queuePosition || '未知'}`);
+            });
+            
+            socket2.on('gameStart', (data) => {
+                console.log('🎮 [Player2] gameStart事件:', data);
+                updateStatus(2, `游戏开始! 对手: ${data.opponent.username}, 您执: ${data.yourPiece}, 轮到您: ${data.isYourTurn}`);
+            });
+        }
+        
+        function joinQueue1() {
+            if (socket1 && socket1.connected) {
+                socket1.emit('joinQueue');
+                updateStatus(1, '正在加入队列...');
+            } else {
+                updateStatus(1, '请先连接');
+            }
+        }
+        
+        function joinQueue2() {
+            if (socket2 && socket2.connected) {
+                socket2.emit('joinQueue');
+                updateStatus(2, '正在加入队列...');
+            } else {
+                updateStatus(2, '请先连接');
+            }
+        }
+    </script>
+</body>
+</html>
