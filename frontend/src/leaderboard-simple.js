@@ -31,7 +31,7 @@ export class SimpleLeaderboard {
                 </div>
             `;
 
-            this.modalElement.querySelector('.modal-body').appendChild(content);
+            this.modalElement.querySelector('.ui-modal-body').appendChild(content);
             document.body.appendChild(this.modalElement);
             this.modalElement.style.display = 'flex';
 
@@ -70,7 +70,7 @@ export class SimpleLeaderboard {
         } catch (error) {
             console.error('❌ 显示排行榜失败:', error);
             if (this.modalElement) {
-                const content = this.modalElement.querySelector('.modal-body');
+                const content = this.modalElement.querySelector('.ui-modal-body');
                 content.innerHTML = `
                     <div style="padding: 20px; text-align: center;">
                         <p style="color: #e74c3c;">❌ 加载排行榜失败</p>
