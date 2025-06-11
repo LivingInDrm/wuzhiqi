@@ -203,6 +203,43 @@ router.get('/global-stats', async (req, res) => {
 });
 
 /**
+ * 获取排行榜
+ * GET /api/games/leaderboard
+ */
+router.get('/leaderboard', async (req, res) => {
+    try {
+        const { 
+            type = 'win_rate', 
+            limit = 20, 
+            difficulty = 'all' 
+        } = req.query;
+
+        console.log(`🏆 获取排行榜: ${type}, 限制${limit}, 难度${difficulty}`);
+
+        const leaderboard = await GameRecord.getLeaderboard({
+            type,
+            limit: parseInt(limit),
+            difficulty
+        });
+
+        res.json({
+            message: '获取排行榜成功',
+            leaderboard: leaderboard,
+            type: type,
+            difficulty: difficulty,
+            total_users: leaderboard.length
+        });
+
+    } catch (error) {
+        console.error('❌ 获取排行榜失败:', error.message);
+        res.status(500).json({
+            error: '获取排行榜失败',
+            message: '服务器内部错误'
+        });
+    }
+});
+
+/**
  * 删除游戏记录
  * DELETE /api/games/record/:id
  */

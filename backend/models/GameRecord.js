@@ -369,7 +369,7 @@ export class GameRecord {
             difficulty: this.difficulty,
             moves_count: this.moves_count,
             duration_seconds: this.duration_seconds,
-            duration_formatted: this.formatDuration(this.duration_seconds),
+            duration_formatted: GameRecord.formatDuration(this.duration_seconds),
             ai_level: this.ai_level,
             user_color: this.user_color,
             final_score: this.final_score,
@@ -378,9 +378,159 @@ export class GameRecord {
     }
 
     /**
+     * 获取排行榜数据
+     */
+    static async getLeaderboard({ type = 'win_rate', limit = 20, difficulty = 'all' }) {
+        try {
+            console.log(`🏆 生成排行榜: ${type}, 限制${limit}, 难度${difficulty}`);
+
+            let difficultyFilter = '';
+            let difficultyParams = [];
+            
+            if (difficulty !== 'all') {
+                difficultyFilter = 'AND gr.difficulty = ?';
+                difficultyParams = [difficulty];
+            }
+
+            // 根据排行榜类型构建不同的查询
+            let orderBy, selectFields;
+            
+            switch (type) {
+                case 'win_rate':
+                    selectFields = `
+                        u.username,
+                        COUNT(gr.id) as total_games,
+                        SUM(CASE WHEN gr.result = 'win' THEN 1 ELSE 0 END) as wins,
+                        SUM(CASE WHEN gr.result = 'lose' THEN 1 ELSE 0 END) as losses,
+                        SUM(CASE WHEN gr.result = 'draw' THEN 1 ELSE 0 END) as draws,
+                        ROUND(
+                            CASE 
+                                WHEN COUNT(gr.id) > 0 
+                                THEN (SUM(CASE WHEN gr.result = 'win' THEN 1 ELSE 0 END) * 100.0 / COUNT(gr.id))
+                                ELSE 0 
+                            END, 2
+                        ) as win_rate,
+                        AVG(gr.duration_seconds) as avg_duration,
+                        MIN(CASE WHEN gr.result = 'win' THEN gr.duration_seconds END) as fastest_win,
+                        u.created_at as join_date
+                    `;
+                    orderBy = 'win_rate DESC, total_games DESC, fastest_win ASC';
+                    break;
+                    
+                case 'total_games':
+                    selectFields = `
+                        u.username,
+                        COUNT(gr.id) as total_games,
+                        SUM(CASE WHEN gr.result = 'win' THEN 1 ELSE 0 END) as wins,
+                        ROUND(
+                            CASE 
+                                WHEN COUNT(gr.id) > 0 
+                                THEN (SUM(CASE WHEN gr.result = 'win' THEN 1 ELSE 0 END) * 100.0 / COUNT(gr.id))
+                                ELSE 0 
+                            END, 2
+                        ) as win_rate,
+                        SUM(gr.duration_seconds) as total_time,
+                        u.created_at as join_date
+                    `;
+                    orderBy = 'total_games DESC, win_rate DESC';
+                    break;
+                    
+                case 'fastest_wins':
+                    selectFields = `
+                        u.username,
+                        COUNT(CASE WHEN gr.result = 'win' THEN 1 END) as total_wins,
+                        MIN(CASE WHEN gr.result = 'win' THEN gr.duration_seconds END) as fastest_win,
+                        MIN(CASE WHEN gr.result = 'win' THEN gr.moves_count END) as fastest_win_moves,
+                        COUNT(gr.id) as total_games,
+                        ROUND(
+                            CASE 
+                                WHEN COUNT(gr.id) > 0 
+                                THEN (SUM(CASE WHEN gr.result = 'win' THEN 1 ELSE 0 END) * 100.0 / COUNT(gr.id))
+                                ELSE 0 
+                            END, 2
+                        ) as win_rate
+                    `;
+                    orderBy = 'fastest_win ASC, total_wins DESC';
+                    break;
+                    
+                default:
+                    throw new Error(`不支持的排行榜类型: ${type}`);
+            }
+
+            const sql = `
+                SELECT ${selectFields}
+                FROM users u
+                INNER JOIN game_records gr ON u.id = gr.user_id
+                WHERE 1=1 ${difficultyFilter}
+                GROUP BY u.id, u.username, u.created_at
+                HAVING COUNT(gr.id) >= 1
+                ORDER BY ${orderBy}
+                LIMIT ?
+            `;
+
+            const params = [...difficultyParams, limit];
+            const results = await getAllFromDatabase(sql, params);
+
+            // 添加排名和格式化数据
+            const leaderboard = results.map((user, index) => ({
+                rank: index + 1,
+                username: user.username,
+                total_games: user.total_games || 0,
+                wins: user.wins || 0,
+                losses: user.losses || 0,
+                draws: user.draws || 0,
+                win_rate: user.win_rate || 0,
+                avg_duration: user.avg_duration ? Math.round(user.avg_duration) : null,
+                avg_duration_formatted: user.avg_duration ? GameRecord.formatDuration(Math.round(user.avg_duration)) : null,
+                fastest_win: user.fastest_win || null,
+                fastest_win_formatted: user.fastest_win ? GameRecord.formatDuration(user.fastest_win) : null,
+                fastest_win_moves: user.fastest_win_moves || null,
+                total_time: user.total_time || 0,
+                total_time_formatted: user.total_time ? GameRecord.formatDuration(user.total_time) : null,
+                join_date: user.join_date,
+                // 添加用户级别
+                level: this.getUserLevelFromStats(user.total_games, user.win_rate),
+                level_name: this.getUserLevelName(this.getUserLevelFromStats(user.total_games, user.win_rate))
+            }));
+
+            console.log(`✅ 排行榜生成成功: ${leaderboard.length} 名用户`);
+            return leaderboard;
+
+        } catch (error) {
+            console.error('❌ 获取排行榜失败:', error.message);
+            throw error;
+        }
+    }
+
+    /**
+     * 根据统计计算用户级别
+     */
+    static getUserLevelFromStats(totalGames, winRate) {
+        if (totalGames >= 50 && winRate >= 80) return 5; // 大师
+        if (totalGames >= 30 && winRate >= 70) return 4; // 专家
+        if (totalGames >= 20 && winRate >= 60) return 3; // 高手
+        if (totalGames >= 10 && winRate >= 50) return 2; // 进阶
+        return 1; // 新手
+    }
+
+    /**
+     * 获取用户级别名称
+     */
+    static getUserLevelName(level) {
+        const levelNames = {
+            1: '新手',
+            2: '进阶',
+            3: '高手', 
+            4: '专家',
+            5: '大师'
+        };
+        return levelNames[level] || '新手';
+    }
+
+    /**
      * 格式化游戏时长
      */
-    formatDuration(seconds) {
+    static formatDuration(seconds) {
         if (!seconds) return '0秒';
         
         const minutes = Math.floor(seconds / 60);
