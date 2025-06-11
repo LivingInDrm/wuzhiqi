@@ -5,6 +5,7 @@
 
 import onlineClient from './online-client.js';
 import authManager from './auth-manager.js';
+import apiClient from './api-client.js';
 
 class OnlineUIManager {
     constructor() {
@@ -196,7 +197,7 @@ class OnlineUIManager {
                 return;
             }
 
-            const token = authManager.getToken();
+            const token = apiClient.getToken();
             await onlineClient.connect(token);
             
         } catch (error) {
