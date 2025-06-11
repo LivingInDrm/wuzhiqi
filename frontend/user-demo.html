@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>用户状态管理演示 - 五子棋</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .demo-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+
+        .demo-header {
+            background: #2c3e50;
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .demo-header h1 {
+            margin: 0 0 10px 0;
+            font-size: 2.5em;
+        }
+
+        .demo-header p {
+            margin: 0;
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+
+        .demo-content {
+            padding: 40px;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .feature-card {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 8px;
+            border-left: 4px solid #007bff;
+        }
+
+        .feature-card h3 {
+            margin: 0 0 15px 0;
+            color: #2c3e50;
+            font-size: 1.3em;
+        }
+
+        .feature-card p {
+            margin: 0 0 15px 0;
+            line-height: 1.6;
+            color: #666;
+        }
+
+        .feature-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .feature-list li {
+            padding: 5px 0;
+            color: #555;
+        }
+
+        .feature-list li:before {
+            content: '✓ ';
+            color: #28a745;
+            font-weight: bold;
+        }
+
+        .demo-actions {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 8px;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .demo-actions h3 {
+            margin: 0 0 20px 0;
+            color: #2c3e50;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .demo-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .demo-btn-primary {
+            background: #007bff;
+            color: white;
+        }
+
+        .demo-btn-primary:hover {
+            background: #0056b3;
+            transform: translateY(-2px);
+        }
+
+        .demo-btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .demo-btn-success:hover {
+            background: #218838;
+            transform: translateY(-2px);
+        }
+
+        .demo-btn-warning {
+            background: #ffc107;
+            color: #212529;
+        }
+
+        .demo-btn-warning:hover {
+            background: #e0a800;
+            transform: translateY(-2px);
+        }
+
+        .status-indicator {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .status-online {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status-offline {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .info-box {
+            background: #e7f3ff;
+            border: 1px solid #b3d7ff;
+            border-radius: 6px;
+            padding: 20px;
+            margin-top: 30px;
+        }
+
+        .info-box h4 {
+            margin: 0 0 10px 0;
+            color: #0056b3;
+        }
+
+        .info-box p {
+            margin: 0;
+            line-height: 1.6;
+        }
+
+        @media (max-width: 768px) {
+            .demo-header {
+                padding: 20px;
+            }
+
+            .demo-header h1 {
+                font-size: 2em;
+            }
+
+            .demo-content {
+                padding: 20px;
+            }
+
+            .feature-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+
+            .demo-btn {
+                width: 100%;
+                max-width: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-container">
+        <div class="demo-header">
+            <h1>🎮 用户状态管理系统</h1>
+            <p>完整的前端用户认证和状态管理解决方案</p>
+        </div>
+
+        <div class="demo-content">
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h3>🔐 用户认证</h3>
+                    <p>完整的用户注册、登录、登出功能，支持表单验证和错误处理。</p>
+                    <ul class="feature-list">
+                        <li>用户注册与登录</li>
+                        <li>JWT token管理</li>
+                        <li>自动登录验证</li>
+                        <li>表单验证与错误提示</li>
+                    </ul>
+                </div>
+
+                <div class="feature-card">
+                    <h3>📊 状态管理</h3>
+                    <p>实时用户状态显示，包括用户信息、等级、统计数据等。</p>
+                    <ul class="feature-list">
+                        <li>用户信息展示</li>
+                        <li>游戏统计数据</li>
+                        <li>等级系统显示</li>
+                        <li>实时状态更新</li>
+                    </ul>
+                </div>
+
+                <div class="feature-card">
+                    <h3>🎯 UI组件</h3>
+                    <p>美观的用户界面组件，提供良好的用户体验。</p>
+                    <ul class="feature-list">
+                        <li>模态对话框</li>
+                        <li>状态指示器</li>
+                        <li>响应式设计</li>
+                        <li>动画效果</li>
+                    </ul>
+                </div>
+
+                <div class="feature-card">
+                    <h3>⚡ 性能优化</h3>
+                    <p>高效的事件处理和状态管理，确保流畅的用户体验。</p>
+                    <ul class="feature-list">
+                        <li>事件驱动架构</li>
+                        <li>本地存储管理</li>
+                        <li>异步操作处理</li>
+                        <li>错误恢复机制</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="demo-actions">
+                <h3>🚀 功能演示</h3>
+                <p>点击右上角的用户状态组件进行交互，或使用下面的按钮快速测试功能</p>
+                
+                <div class="action-buttons">
+                    <button class="demo-btn demo-btn-primary" onclick="userStatus.showLogin()">
+                        🔑 显示登录界面
+                    </button>
+                    <button class="demo-btn demo-btn-success" onclick="userStatus.showRegister()">
+                        📝 显示注册界面
+                    </button>
+                    <button class="demo-btn demo-btn-warning" onclick="testUserFeatures()">
+                        🧪 测试用户功能
+                    </button>
+                    <a href="api-test.html" class="demo-btn demo-btn-primary">
+                        🌐 API测试页面
+                    </a>
+                    <a href="index.html" class="demo-btn demo-btn-success">
+                        🎮 返回游戏
+                    </a>
+                </div>
+
+                <div style="margin-top: 20px;">
+                    <span class="status-indicator" id="serverStatus">
+                        🔍 检测服务器状态中...
+                    </span>
+                </div>
+            </div>
+
+            <div class="info-box">
+                <h4>💡 使用说明</h4>
+                <p>
+                    这个演示展示了完整的用户状态管理系统。用户可以注册账号、登录、查看统计数据等。
+                    系统支持离线模式，未登录用户也可以正常使用游戏功能。
+                    所有用户数据都安全存储在后端，并通过JWT token进行认证。
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import authManager from './src/auth-manager.js';
+        import userStatus from './src/user-status.js';
+        import apiClient from './src/api-client.js';
+        import gameDataManager from './src/game-data-manager.js';
+
+        // 全局变量
+        window.authManager = authManager;
+        window.userStatus = userStatus;
+        window.gameDataManager = gameDataManager;
+
+        // 初始化用户状态组件
+        document.addEventListener('DOMContentLoaded', async () => {
+            // 初始化用户状态组件
+            userStatus.init();
+            
+            // 检查服务器状态
+            await checkServerStatus();
+            
+            // 监听认证状态变化
+            authManager.addEventListener('auth:state-changed', (state) => {
+                console.log('认证状态变化:', state);
+            });
+        });
+
+        // 检查服务器状态
+        async function checkServerStatus() {
+            const statusEl = document.getElementById('serverStatus');
+            
+            try {
+                const health = await apiClient.healthCheck();
+                statusEl.textContent = '🟢 服务器在线';
+                statusEl.className = 'status-indicator status-online';
+            } catch (error) {
+                statusEl.textContent = '🔴 服务器离线 (离线模式)';
+                statusEl.className = 'status-indicator status-offline';
+            }
+        }
+
+        // 测试用户功能
+        window.testUserFeatures = async function() {
+            console.log('开始测试用户功能...');
+            
+            // 测试认证状态
+            const authState = authManager.getAuthState();
+            console.log('当前认证状态:', authState);
+            
+            if (authState.isLoggedIn) {
+                // 测试加载用户数据
+                try {
+                    const stats = await gameDataManager.loadUserStats();
+                    console.log('用户统计:', stats);
+                    
+                    const history = await gameDataManager.loadGameHistory({ limit: 5 });
+                    console.log('游戏历史:', history);
+                    
+                    alert('✅ 用户功能测试完成，请查看控制台日志');
+                } catch (error) {
+                    alert('❌ 测试失败: ' + error.message);
+                }
+            } else {
+                alert('请先登录以测试用户功能');
+                userStatus.showLogin();
+            }
+        };
+
+        // 模拟游戏记录（用于测试）
+        window.simulateGameRecord = async function() {
+            if (!authManager.isLoggedIn()) {
+                alert('请先登录');
+                return;
+            }
+
+            try {
+                const gameData = {
+                    result: Math.random() > 0.5 ? 'win' : 'lose',
+                    difficulty: ['simple', 'advanced', 'professional'][Math.floor(Math.random() * 3)],
+                    moves: Math.floor(Math.random() * 100) + 20,
+                    duration: Math.floor(Math.random() * 300) + 60,
+                    userColor: Math.random() > 0.5 ? 'black' : 'white'
+                };
+
+                await gameDataManager.recordGame(gameData);
+                alert('✅ 模拟游戏记录已保存');
+                
+                // 刷新统计数据
+                await gameDataManager.loadUserStats();
+            } catch (error) {
+                alert('❌ 记录失败: ' + error.message);
+            }
+        };
+
+    </script>
+</body>
+</html>
