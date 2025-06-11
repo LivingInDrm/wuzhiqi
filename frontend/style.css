@@ -53,6 +53,297 @@ h1 {
     justify-content: center;
 }
 
+/* 排行榜组件样式 */
+.leaderboard-modal .modal-body {
+    padding: 0;
+    max-height: 80vh;
+    overflow: hidden;
+}
+
+.leaderboard-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    font-family: 'Microsoft YaHei', Arial, sans-serif;
+}
+
+/* 排行榜控制面板 */
+.leaderboard-controls {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 20px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 15px 15px 0 0;
+}
+
+.control-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.control-group label {
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.leaderboard-type-select,
+.leaderboard-difficulty-select {
+    padding: 8px 12px;
+    border: none;
+    border-radius: 8px;
+    background: white;
+    color: #333;
+    font-size: 14px;
+    cursor: pointer;
+    outline: none;
+    transition: all 0.3s ease;
+}
+
+.leaderboard-type-select:hover,
+.leaderboard-difficulty-select:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.refresh-btn {
+    padding: 8px 16px;
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+.refresh-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.5);
+}
+
+/* 排行榜内容区域 */
+.leaderboard-content {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+}
+
+.leaderboard-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 300px;
+    color: #666;
+}
+
+.loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #667eea;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 15px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.leaderboard-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 300px;
+    color: #888;
+}
+
+.empty-icon {
+    font-size: 48px;
+    margin-bottom: 15px;
+}
+
+/* 排行榜表格 */
+.leaderboard-table-container {
+    height: 400px;
+    overflow-y: auto;
+    padding: 0 20px;
+}
+
+.leaderboard-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.leaderboard-table thead {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.leaderboard-table th {
+    padding: 15px 10px;
+    text-align: center;
+    font-weight: bold;
+    font-size: 14px;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.leaderboard-table td {
+    padding: 12px 10px;
+    text-align: center;
+    border-bottom: 1px solid #eee;
+    font-size: 14px;
+}
+
+.leaderboard-row:hover {
+    background-color: #f8f9fa;
+}
+
+/* 排名样式 */
+.rank-cell {
+    font-weight: bold;
+    font-size: 16px;
+}
+
+.rank-gold {
+    color: #ffd700;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.rank-silver {
+    color: #c0c0c0;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.rank-bronze {
+    color: #cd7f32;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* 用户名样式 */
+.username-cell {
+    font-weight: bold;
+    color: #333;
+}
+
+/* 级别样式 */
+.level-cell {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+}
+
+.level-icon {
+    font-size: 18px;
+}
+
+.level-name {
+    font-size: 12px;
+    color: #666;
+    font-weight: bold;
+}
+
+/* 胜率样式 */
+.win-rate-cell {
+    font-weight: bold;
+    color: #28a745;
+}
+
+/* 统计数据样式 */
+.total-games-cell {
+    color: #007bff;
+    font-weight: bold;
+}
+
+.record-cell {
+    font-family: monospace;
+    font-size: 12px;
+    color: #666;
+}
+
+.duration-cell,
+.fastest-cell,
+.total-time-cell {
+    font-family: monospace;
+    font-size: 12px;
+    color: #6c757d;
+}
+
+.wins-cell {
+    color: #28a745;
+    font-weight: bold;
+}
+
+.moves-cell {
+    color: #17a2b8;
+    font-weight: bold;
+}
+
+.join-date-cell {
+    font-size: 12px;
+    color: #6c757d;
+}
+
+/* 排行榜统计信息 */
+.leaderboard-stats {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    background: #f8f9fa;
+    border-top: 1px solid #dee2e6;
+    font-size: 12px;
+    color: #6c757d;
+}
+
+.stats-info {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .leaderboard-controls {
+        flex-direction: column;
+        gap: 15px;
+        align-items: stretch;
+    }
+    
+    .control-group {
+        justify-content: space-between;
+    }
+    
+    .leaderboard-table {
+        font-size: 12px;
+    }
+    
+    .leaderboard-table th,
+    .leaderboard-table td {
+        padding: 8px 5px;
+    }
+    
+    .leaderboard-stats {
+        flex-direction: column;
+        gap: 10px;
+        align-items: stretch;
+    }
+}
+
 .difficulty-selector h3 {
     color: white;
     margin-bottom: 15px;

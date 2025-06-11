@@ -281,6 +281,18 @@ class ApiClient {
         return this.get(`/games/history/${userId}`, { ...defaultParams, ...params });
     }
 
+    /**
+     * 获取排行榜
+     */
+    async getLeaderboard(params = {}) {
+        const defaultParams = {
+            type: 'win_rate',
+            limit: 20,
+            difficulty: 'all'
+        };
+        return this.get('/games/leaderboard', { ...defaultParams, ...params });
+    }
+
     // =================健康检查和工具方法=================
 
     /**

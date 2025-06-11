@@ -5,6 +5,7 @@
 import authManager from './auth-manager.js';
 import gameDataManager from './game-data-manager.js';
 import loginComponent from './login-component.js';
+import simpleLeaderboard from "./leaderboard-simple.js";
 
 export class UserStatus {
     constructor() {
@@ -90,6 +91,9 @@ export class UserStatus {
                         </button>
                         <button class="status-btn profile-btn" id="profileBtn" onclick="userStatus.showProfile()" style="display: none;">
                             个人资料
+                        </button>
+                        <button class="status-btn leaderboard-btn" id="leaderboardBtn" onclick="userStatus.showLeaderboard()">
+                            🏆 排行榜
                         </button>
                     </div>
                 </div>
@@ -279,6 +283,19 @@ export class UserStatus {
     showProfile() {
         // TODO: 实现个人资料页面
         alert('个人资料功能即将推出');
+    }
+
+    /**
+     * 显示排行榜
+     */
+    showLeaderboard() {
+        try {
+            // simpleLeaderboard.init() not needed
+            simpleLeaderboard.show();
+        } catch (error) {
+            console.error("❌ 显示排行榜失败:", error);
+            alert("显示排行榜失败，请稍后再试");
+        }
     }
 
     /**
