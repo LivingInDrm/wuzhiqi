@@ -4,7 +4,7 @@
  */
 
 import onlineClient from './online-client.js';
-import { authManager } from './auth-manager.js';
+import authManager from './auth-manager.js';
 
 class OnlineUIManager {
     constructor() {
