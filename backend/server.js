@@ -5,13 +5,15 @@ import rateLimit from 'express-rate-limit';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import fs from 'fs';
+import { createServer } from 'http';
 
 // 获取当前文件目录
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-// 创建Express应用
+// 创建Express应用和HTTP服务器
 const app = express();
+const httpServer = createServer(app);
 
 // 环境配置
 const PORT = process.env.PORT || 3000;
@@ -144,10 +146,16 @@ app.use((err, req, res, next) => {
     });
 });
 
+// =================WebSocket服务器=================
+
+// 初始化WebSocket服务器
+import { initializeWebSocket } from './services/websocket.js';
+initializeWebSocket(httpServer);
+
 // =================服务器启动=================
 
 // 优雅关闭处理
-const server = app.listen(PORT, () => {
+const server = httpServer.listen(PORT, () => {
     console.log(`
 🚀 五子棋游戏后端服务启动成功!
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
