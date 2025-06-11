@@ -7,7 +7,7 @@ import { Server } from 'socket.io';
 import jwt from 'jsonwebtoken';
 import matchmakingService from './matchmaking.js';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
+const JWT_SECRET = process.env.JWT_SECRET || 'wuziqi-game-super-secret-key-for-development-only-2024';
 
 /**
  * 初始化WebSocket服务器
