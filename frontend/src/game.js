@@ -65,6 +65,7 @@ export class Gomoku {
             this.gameMode = 'ai'; // 'ai' 或 'online'
         }
         this.onlineGameData = null; // 在线游戏数据
+        this.gameResultRecorded = false; // 防止重复记录游戏结果
 
         // 随机决定先手方：1=用户执黑先手，2=AI执黑先手
         this.randomizeFirstPlayer();
@@ -488,7 +489,7 @@ export class Gomoku {
     startGameRecording() {
         if (userManager.isRegisteredUser()) {
             const gameConfig = {
-                difficulty: this.difficulty,
+                difficulty: this.gameMode === 'online' ? 'online' : this.difficulty,
                 userColor: this.humanPlayer === 1 ? 'black' : 'white'
             };
             
@@ -516,12 +517,14 @@ export class Gomoku {
      * 记录游戏结果
      */
     async recordGameResult(result) {
-        if (userManager.isRegisteredUser()) {
+        if (userManager.isRegisteredUser() && !this.gameResultRecorded) {
+            this.gameResultRecorded = true; // 防止重复记录
             try {
                 await GameRecordFix.recordGame(GameRecordFix.createGameResult(result, this.difficulty, this.moveHistory.length, this.getGameDuration(), this.humanPlayer === 1 ? "black" : "white"));
                 console.log('📊 游戏结果已记录:', result);
             } catch (error) {
                 console.error('❌ 记录游戏结果失败:', error);
+                this.gameResultRecorded = false; // 失败时重置，允许重试
             }
         }
     }
@@ -724,7 +727,8 @@ export class Gomoku {
      * 记录在线游戏结果
      */
     async recordOnlineGameResult(result, savedGameData = null) {
-        if (userManager.isRegisteredUser()) {
+        if (userManager.isRegisteredUser() && !this.gameResultRecorded) {
+            this.gameResultRecorded = true; // 防止重复记录
             try {
                 // 使用在线模式的特殊标记
                 await GameRecordFix.recordGame(GameRecordFix.createGameResult(
@@ -737,6 +741,7 @@ export class Gomoku {
                 console.log('📊 在线游戏结果已记录:', result);
             } catch (error) {
                 console.error('❌ 记录在线游戏结果失败:', error);
+                this.gameResultRecorded = false; // 失败时重置，允许重试
             }
         }
     }
