@@ -1,6 +1,7 @@
 import { Gomoku } from './src/game.js';
 import * as config from './src/config.js';
 import onlineUIManager from './src/online-ui-manager.js';
+import onlineClient from './src/online-client.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     const game = new Gomoku();
@@ -33,7 +34,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     
     // 设置在线客户端的对手移动回调
-    import onlineClient from './src/online-client.js';
     onlineClient.setCallbacks({
         onOpponentMove: (data) => {
             // 如果游戏结束，直接由onlineUIManager处理
